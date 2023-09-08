@@ -31,5 +31,5 @@ make
 
 1. Run the build file:
 ```
-./DBow3_exam_mail ../data/office/db_set ../data/office/test_set
+./DBoW3_exam_main orb ../data/office/db_set ../data/office/test_set
 ```
