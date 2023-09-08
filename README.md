@@ -1,5 +1,4 @@
 # The usage example of DBow3 library modified from general_demo.cpp 
----
 ## Dependency
 
 - [OpenCV]
@@ -28,3 +27,9 @@ make
 ```
 
 ---
+## Test
+
+1. Run the build file:
+```
+./DBow3_exam_mail ../data/office/db_set ../data/office/test_set
+```
