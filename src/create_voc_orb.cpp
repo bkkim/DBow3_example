@@ -2,25 +2,22 @@
 
 #include <iostream>
 #include <vector>
-#include <filesystem>
-
 
 // DBoW3
-#include "DBoW3.h"
+#include <DBoW3/DBoW3.h>
+#include <DBoW3/DescManip.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>
-//#include <opencv2/core/core.hpp>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <opencv2/features2d/features2d.hpp>
-
-#include "DescManip.h"
-
 
 using namespace DBoW3;
 using namespace std;
-using std::filesystem::directory_iterator;  // c++ 17
 
+
+#if __cplusplus > 201703L // C++17 code here
+#include <filesystem>
+using std::filesystem::directory_iterator;  // c++ 17
+#endif
 
 
 //command line parser
@@ -54,13 +51,42 @@ public:
 };
 
 
-vector<string> readImagePath(string path) 
+vector<string> readDBImagePath(string path) 
 {
 	vector<string> images;
+
+#if __cplusplus > 201703L // C++17 code here
 	for (const auto& file : directory_iterator(path))
 	{
 		images.push_back(path+"/"+file.path().filename().string());
 	}
+#else
+	int cnt = 10;
+	for (size_t i = 0; i < cnt; i++)
+	{
+		images.push_back(path + "/"+ to_string(i) + ".jpg");
+	}
+#endif
+
+	return images;
+}
+
+vector<string> readTestImagePath(string path) 
+{
+	vector<string> images;
+
+#if __cplusplus > 201703L // C++17 code here	
+	for (const auto& file : directory_iterator(path))
+	{
+		images.push_back(path+"/"+file.path().filename().string());
+	}
+#else
+	int cnt = 10;
+	for (size_t i = 0; i < cnt; i++)
+	{
+		images.push_back(path + "/"+ to_string(i) + ".jpg");
+	}
+#endif
 
 	return images;
 }
@@ -166,14 +192,14 @@ void testVoc(const vector<cv::Mat>& features_db, const vector<cv::Mat>& features
 		if (1/*DEBUG_IMAGE*/)
 		{
 			cv::Mat img_test = cv::imread(images_test[i], 0);
-			cv::putText(img_test, "File: " + images_test[i], cv::Point2f(5, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255), 2);
+			cv::putText(img_test, "File: " + images_test[i], cv::Point2f(5, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0), 2);
 			for (size_t i = 0; i < results.size(); i++)
 			{
 				// Image load
 				cv::Mat img_db = cv::imread(images_db[results[i].Id], 0);
 				std::string caption = "Number: " + to_string(i) + ", Index: " + to_string(results[i].Id) + ", Score: " + to_string(results[i].Score);
-				cv::putText(img_db, "File: " + images_db[results[i].Id], cv::Point2f(5, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255), 2);
-				cv::putText(img_db, caption, cv::Point2f(5, 40), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255), 2);
+				cv::putText(img_db, "File: " + images_db[results[i].Id], cv::Point2f(5, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0), 2);
+				cv::putText(img_db, caption, cv::Point2f(5, 40), CV_FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0), 2);
 				cv::hconcat(img_db, img_test, img_db);
 				cv::imshow("Search image", img_db);
 				cv::waitKey(0);
@@ -194,6 +220,12 @@ void testVoc(const vector<cv::Mat>& features_db, const vector<cv::Mat>& features
 	cout << "... done! This is: " << endl << db2 << endl;
 }
 
+void testDB(string path)
+{
+	Database db(path);
+	cout << "... done! This is: " << endl << db << endl;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -207,11 +239,13 @@ int main(int argc, char** argv)
 
 		string descriptor = argv[1];
 
-		auto images_db = readImagePath(string(argv[2]));
+		//testDB("small_db.yml.gz");
+
+		auto images_db = readDBImagePath(string(argv[2]));
 		vector<cv::Mat> features_db = loadOrbFeatures(images_db, descriptor);
 		createVoc(features_db);
 
-		auto images_test = readImagePath(string(argv[3]));
+		auto images_test = readTestImagePath(string(argv[3]));
 		vector<cv::Mat> features_test = loadOrbFeatures(images_test, descriptor);
 		testVoc(features_db, features_test, images_db, images_test);
 	}
