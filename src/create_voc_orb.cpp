@@ -51,7 +51,7 @@ public:
 };
 
 
-vector<string> readDBImagePath(string path) 
+vector<string> readDBImagePath(string path, int cnt) 
 {
 	vector<string> images;
 
@@ -61,7 +61,7 @@ vector<string> readDBImagePath(string path)
 		images.push_back(path+"/"+file.path().filename().string());
 	}
 #else
-	int cnt = 10;
+	//int cnt = 10;
 	for (size_t i = 0; i < cnt; i++)
 	{
 		images.push_back(path + "/"+ to_string(i) + ".jpg");
@@ -71,7 +71,7 @@ vector<string> readDBImagePath(string path)
 	return images;
 }
 
-vector<string> readTestImagePath(string path) 
+vector<string> readTestImagePath(string path, int cnt) 
 {
 	vector<string> images;
 
@@ -81,7 +81,7 @@ vector<string> readTestImagePath(string path)
 		images.push_back(path+"/"+file.path().filename().string());
 	}
 #else
-	int cnt = 10;
+	//int cnt = 10;
 	for (size_t i = 0; i < cnt; i++)
 	{
 		images.push_back(path + "/"+ to_string(i) + ".jpg");
@@ -231,9 +231,9 @@ int main(int argc, char** argv)
 {
 	try {
 		CmdLineParser cml(argc, argv);
-		if (cml["-h"] || argc <= 2)
+		if (cml["-h"] || argc < 3)
 		{
-			cerr << "Usage: descriptor_name  path_db  path_test\n\t descriptors:brisk,surf,orb,akaze(only if using opencv3)" << endl;
+			cerr << "Usage: descriptor_name  path_db  db_cnt  path_test  test_cnt\n\t descriptors:brisk,surf,orb,akaze(only if using opencv3)" << endl;
 			return -1;
 		}
 
@@ -241,13 +241,15 @@ int main(int argc, char** argv)
 
 		//testDB("small_db.yml.gz");
 
-		auto images_db = readDBImagePath(string(argv[2]));
+		auto images_db = readDBImagePath(string(argv[2]), stoi(argv[3]));
 		vector<cv::Mat> features_db = loadOrbFeatures(images_db, descriptor);
 		createVoc(features_db);
 
-		auto images_test = readTestImagePath(string(argv[3]));
-		vector<cv::Mat> features_test = loadOrbFeatures(images_test, descriptor);
-		testVoc(features_db, features_test, images_db, images_test);
+		if (argc > 5) {
+			auto images_test = readTestImagePath(string(argv[4]), stoi(argv[5]));
+			vector<cv::Mat> features_test = loadOrbFeatures(images_test, descriptor);
+			testVoc(features_db, features_test, images_db, images_test);
+		}
 	}
 	catch (std::exception& e) {
 		cerr << e.what() << endl;
